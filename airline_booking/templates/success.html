@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block title %}SUCCESS{% endblock %}
+
+{% block body %}
+  <h1>Success</h1>
+  <h3>You have successfully booked your flight</h3>
+  <!-- link to whatever the url in the function flights_info()   -->
+  <a href="{{ url_for('flights_info') }}">See more details about flights...</a>
+{% endblock %}

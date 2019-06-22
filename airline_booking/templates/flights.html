@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Flights{% endblock %}
+
+{% block body %}
+  <h1>All The Flights</h1>
+  <ul>
+    {% for f in flights %}
+    <li>
+      <a href="{{ url_for('flight', flight_id=f.id)}}">
+        {{ f.origin}} to {{ f.destination }}
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+
+{% endblock %}

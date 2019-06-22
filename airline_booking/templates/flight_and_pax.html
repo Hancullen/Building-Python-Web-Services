@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Flight Information{% endblock %}
+
+{% block body %}
+  <h1>Details</h1>
+  <ul>
+    <li>Origin: {{ flight.origin}}</li>
+    <li>Destination: {{ flight.destination }}</li>
+    <li>Duration: {{flight.duration }} </li>
+  </ul>
+  <h2>Passengers</h2>
+  <ul>
+    {% for p in passengers %}
+      <li>{{ p.name }}</li>
+    {% else %}
+      <li>No passengers here</li>
+    {% endfor %}
+  </ul>
+  <!-- link back the previous page()   -->
+  <a href="{{ url_for('flights_info') }}">Back</a>
+{% endblock %}
