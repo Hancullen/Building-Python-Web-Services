@@ -1,0 +1,16 @@
+body {
+  background-color: white;
+}
+
+.logo {
+  font-family: 'Peralta', cursive;
+}
+
+.logo a {
+  color: rgb(0, 0, 0);
+}
+
+.logo a:hover,
+.logo a:active {
+  text-decoration: none;
+}
