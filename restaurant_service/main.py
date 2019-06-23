@@ -35,7 +35,7 @@ def dashboard():
 def account_createtable():
     tablename = request.form.get("tablenumber")
     tableid = db.add_table(tablename, current_user.get_id())
-    new_url = config.base_url + "newrequest/" + tableid
+    new_url = BH.shorten_url(config.base_url + "newrequest/" + tableid) 
     db.update_table(tableid, new_url)
     return redirect(url_for('account'))
 
