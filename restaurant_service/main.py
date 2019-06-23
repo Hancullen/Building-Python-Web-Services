@@ -2,10 +2,14 @@ from flask import Flask, request, render_template, redirect, url_for
 from flask_login import LoginManager, current_user, login_required, login_user, logout_user
 from mockdbhelper import MockDBhelper as DBhelper
 from user import User
-from passwordhlper import PasswordHelper
+from passwordhelper import PasswordHelper
+import config
+from bitlyhelper import BitlyHelper
 
 db = DBhelper()
 PH = PasswordHelper()
+BH = BitlyHelper()
+
 app = Flask(__name__)
 app.secret_key = b'\xff&\xa3\xc31\xaa\xd0#\xb68Kf\x8c\xf5\xfd@'
 login_manager = LoginManager()
@@ -18,7 +22,29 @@ def home():
 @app.route("/account")
 @login_required
 def account():
-    return "You are logged in"
+    tables = db.get_tables(current_user.get_id())
+    return render_template("account.html", tables=tables)
+
+@app.route("/dashboard")
+@login_required
+def dashboard():
+  return render_template("dashboard.html")
+
+@app.route("/account/createtable", methods=["POST"])
+@login_required
+def account_createtable():
+    tablename = request.form.get("tablenumber")
+    tableid = db.add_table(tablename, current_user.get_id())
+    new_url = config.base_url + "newrequest/" + tableid
+    db.update_table(tableid, new_url)
+    return redirect(url_for('account'))
+
+@app.route("/account/deletetable")
+@login_required
+def account_deletetable():
+    tableid = request.args.get("tableid")
+    db.delete_table(tableid)
+    return redirect(url_for('account'))
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -30,8 +56,8 @@ def load_user(user_id):
 def login():
     email = request.form.get("email")
     password = request.form.get("password")
-    user_password = db.get_user(email)
-    if user_password and user_password == password:
+    stored_user = db.get_user(email)
+    if stored_user and PH.validate_password(password, stored_user['hashed']):
         user = User(email)
         login_user(user, remember=True)
         return redirect(url_for('account'))
@@ -45,13 +71,16 @@ def logout():
 
 @app.route("/register", methods=["POST", "GET"])
 def register():
-    email = request.from.get("email")
+    email = request.form.get("email")
     pw1 = request.form.get("password")
     confirmed_pw = request.form.get("password2")
-    if not pw1 = confirmed_pw:
+    if not pw1 == confirmed_pw:
         return redirect(url_for('home'))
     if db.get_user(email): #verify if user's email already exists
         return redirect(url_for('home'))
+    hashed = PH.get_hash(pw1)
+    db.add_user(email, hashed)
+    return redirect(url_for('home'))
 
 
 if __name__ == '__main__':
