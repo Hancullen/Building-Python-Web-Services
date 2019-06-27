@@ -6,6 +6,7 @@ from passwordhelper import PasswordHelper
 import config
 from bitlyhelper import BitlyHelper
 import datetime
+from forms import RegistrationForm
 
 db = DBhelper()
 PH = PasswordHelper()
@@ -18,7 +19,8 @@ login_manager.init_app(app)
 
 @app.route("/")
 def home():
-    return render_template("home.html")
+    registrationform = RegistrationForm()
+    return render_template("home.html", registrationform=registrationform)
 
 @app.route("/login", methods=["POST", "GET"])
 def login():
