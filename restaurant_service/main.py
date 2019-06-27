@@ -5,6 +5,7 @@ from user import User
 from passwordhelper import PasswordHelper
 import config
 from bitlyhelper import BitlyHelper
+import datetime
 
 db = DBhelper()
 PH = PasswordHelper()
@@ -18,39 +19,6 @@ login_manager.init_app(app)
 @app.route("/")
 def home():
     return render_template("home.html")
-
-@app.route("/account")
-@login_required
-def account():
-    tables = db.get_tables(current_user.get_id())
-    return render_template("account.html", tables=tables)
-
-@app.route("/dashboard")
-@login_required
-def dashboard():
-  return render_template("dashboard.html")
-
-@app.route("/account/createtable", methods=["POST"])
-@login_required
-def account_createtable():
-    tablename = request.form.get("tablenumber")
-    tableid = db.add_table(tablename, current_user.get_id())
-    new_url = BH.shorten_url(config.base_url + "newrequest/" + tableid) 
-    db.update_table(tableid, new_url)
-    return redirect(url_for('account'))
-
-@app.route("/account/deletetable")
-@login_required
-def account_deletetable():
-    tableid = request.args.get("tableid")
-    db.delete_table(tableid)
-    return redirect(url_for('account'))
-
-@login_manager.user_loader
-def load_user(user_id):
-    user_password = db.get_user(user_id)
-    if user_password:
-        return User(user_id)
 
 @app.route("/login", methods=["POST", "GET"])
 def login():
@@ -82,6 +50,55 @@ def register():
     db.add_user(email, hashed)
     return redirect(url_for('home'))
 
+@app.route("/dashboard")
+@login_required
+def dashboard():
+    now = datetime.datetime.now()
+    requests = db.get_requests(current_user.get_id())
+    for r in requests:
+        deltaseconds = (now - r['time']).seconds
+        r['waiting_in_minutes'] = "{}:{}".format(str(deltaseconds/60), str(deltaseconds % 60))
+    return render_template("dashboard.html", requests=requests)
+
+@app.route("/newrequest/<tid>")
+def new_request(tid):
+    db.add_request(tid, datetime.datetime.now())
+    return "Your request has been received and a waiter will be with you shorly"
+
+@app.route("/dashboard/resolve")
+@login_required
+def dashboard_resolve():
+    request_id = request.args.get("request_id")
+    db.delete_request(request_id)
+    return redirect(url_for('dashboard'))
+
+@app.route("/account")
+@login_required
+def account():
+    tables = db.get_tables(current_user.get_id())
+    return render_template("account.html", tables=tables)
+
+@app.route("/account/createtable", methods=["POST"])
+@login_required
+def account_createtable():
+    tablename = request.form.get("tablenumber")
+    tableid = db.add_table(tablename, current_user.get_id())
+    new_url = BH.shorten_url(config.base_url + "newrequest/" + tableid)
+    db.update_table(tableid, new_url)
+    return redirect(url_for('account'))
+
+@app.route("/account/deletetable")
+@login_required
+def account_deletetable():
+    tableid = request.args.get("tableid")
+    db.delete_table(tableid)
+    return redirect(url_for('account'))
+
+@login_manager.user_loader
+def load_user(user_id):
+    user_password = db.get_user(user_id)
+    if user_password:
+        return User(user_id)
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
