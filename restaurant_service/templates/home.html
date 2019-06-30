@@ -19,6 +19,9 @@
     <![endif]-->
 
   </head>
+  {% block bodytag %}
+  <body {% if onloadmessage %} onload="alert('{{onloadmessage}}');"{% endif %}>
+  {% endblock %}
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
       <a class="navbar-brand" href="#">Restaurant</a>
@@ -48,9 +51,29 @@
 
         </ul>
         <form class="form-inline my-2 my-lg-0" action="/login" method="POST">
-          <input class="form-control mr-sm-2" type="text" name="email" placeholder="Email" aria-label="Email">
-          <input class="form-control mr-sm-2" type="password" name="password" placeholder="Password" aria-label="Password">
-          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Sign In</button>
+          {{ loginform.csrf_token }}
+          {% if loginform.errors %}
+            <ul class="errors">
+              {% for field_name, field_errors in loginform.errors|dictsort if field_errors %}
+                {% for error in field_errors %}
+                  <li>{{ error }}</li>
+                {% endfor %}
+              {% endfor %}
+            </ul>
+          {% endif %}
+
+          <!-- <input class="form-control mr-sm-2" name='email'>
+            {{ loginform.loginemail(placeholder="Email")}}
+          </div>
+          <div class="form-control mr-sm-2">
+            {{ loginform.loginpassword(placeholder="Password")}}
+          </div>
+          <button class="btn btn-outline-success my-2 my-sm-0">
+            {{ loginform.submit(value="Sign in") }}
+          </button> -->
+          <input class="form-control mr-sm-2" name="email" placeholder="Email" {{loginform.loginemail}}>
+          <input class="form-control mr-sm-2" name="password" placeholder="Password" {{loginform.loginpassword}}>
+          <button class="btn btn-outline-success my-2 my-sm-0" {{loginform.submit}}> Sign In </button>
         </form>
       </div>
     </nav>
@@ -77,22 +100,45 @@
         <div class="col-md-4">
           <h2>Register now</h2>
              <form class="form-horizontal" action="/register" method="POST">
-                {{ registrationform.csrf_token }}
+                {{  registrationform.csrf_token }}
                 <div class="form-group">
                   <div class="col-sm-9">
+                    {% if registrationform.email.errors %}
+                      <ul class="errors">
+                        {% for error in registrationform.email.errors %}
+                          <li>{{ error }}</li>
+                        {% endfor %}
+                      </ul>
+                    {% endif %}
                     {{ registrationform.email(class='form-control', placeholder='Email') }}
                   </div>
-                </div>
+                </div> <!-- end email field -->
+
                 <div class="form-group">
                   <div class="col-sm-9">
+                    {% if registrationform.password.errors %}
+                      <ul class="errors">
+                        {% for error in registrationform.password.errors %}
+                          <li>{{ error }}</li>
+                        {% endfor %}
+                      </ul>
+                    {% endif %}
                     {{ registrationform.password(class='form-control', placeholder='Password') }}
                   </div>
-                </div>
+                </div> <!-- end password field -->
+
                 <div class="form-group">
                     <div class="col-sm-9">
+                      {% if registrationform.password2.errors %}
+                        <ul class="errors">
+                          {% for error in registrationform.password2.errors %}
+                            <li>{{ error }}</li>
+                          {% endfor %}
+                        </ul>
+                      {% endif %}
                       {{ registrationform.password2(class='form-control', placeholder='Confirm your password') }}
                     </div>
-                </div>
+                </div> <!-- end password2 field -->
 
                 <div class="form-group">
                     <div class="col-sm-9">
@@ -118,7 +164,7 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script> -->
 
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>

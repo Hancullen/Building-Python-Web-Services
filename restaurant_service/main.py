@@ -6,13 +6,15 @@ from passwordhelper import PasswordHelper
 import config
 from bitlyhelper import BitlyHelper
 import datetime
-from forms import RegistrationForm
+from forms import RegistrationForm, LoginForm
+from flask_wtf.csrf import CSRFProtect
 
 db = DBhelper()
 PH = PasswordHelper()
 BH = BitlyHelper()
 
 app = Flask(__name__)
+csrf = CSRFProtect(app)
 app.secret_key = b'\xff&\xa3\xc31\xaa\xd0#\xb68Kf\x8c\xf5\xfd@'
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -20,19 +22,21 @@ login_manager.init_app(app)
 @app.route("/")
 def home():
     registrationform = RegistrationForm()
-    return render_template("home.html", registrationform=registrationform)
+    loginform = LoginForm()
+    return render_template("home.html", loginform=loginform, registrationform=registrationform)
 
 @app.route("/login", methods=["POST", "GET"])
 def login():
-    email = request.form.get("email")
-    password = request.form.get("password")
-    stored_user = db.get_user(email)
-    if stored_user and PH.validate_password(password, stored_user['hashed']):
-        user = User(email)
-        login_user(user, remember=True)
-        return redirect(url_for('account'))
-        # return account()
-    return home()
+    form = LoginForm()
+    if form.validate_on_submit():
+        stored_user = db.get_user(form.loginemail.data)
+        if stored_user and PH.validate_password(form.loginpassword.data, stored_user['hashed']):
+            user = User(form.loginemail.data)
+            login_user(user, remember=True)
+            return redirect(url_for('account'))
+            # return account()
+        form.loginemail.errors.append('Email or Password Invalid')
+    return render_template('home.html', loginform=form, registrationform=RegistrationForm())
 
 @app.route("/logout")
 def logout():
@@ -41,16 +45,24 @@ def logout():
 
 @app.route("/register", methods=["POST", "GET"])
 def register():
-    email = request.form.get("email")
-    pw1 = request.form.get("password")
-    confirmed_pw = request.form.get("password2")
-    if not pw1 == confirmed_pw:
-        return redirect(url_for('home'))
-    if db.get_user(email): #verify if user's email already exists
-        return redirect(url_for('home'))
-    hashed = PH.get_hash(pw1)
-    db.add_user(email, hashed)
-    return redirect(url_for('home'))
+    #update version using registration form
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        if db.get_user(form.email.data):
+            form.email.errors.append('Your email is already registered')
+            return render_template('home.html', registrationform=form, loginform=LoginForm())
+    #Old version to compare
+    # pw1 = request.form.get("password")
+    # confirmed_pw = request.form.get("password2")
+    # if not pw1 == confirmed_pw:
+    #     return redirect(url_for('home'))
+    # if db.get_user(email): #verify if user's email already exists
+    #     return redirect(url_for('home'))
+        hashed = PH.get_hash(form.password2.data)
+        db.add_user(form.email.data, hashed)
+        # return redirect(url_for('home'))
+        return render_template('home.html', loginform=LoginForm(), registrationform=form, onloadmessage='Registration successful. Please log in.')
+    return render_template('home.html', loginform=LoginForm(), registrationform=form)
 
 @app.route("/dashboard")
 @login_required
