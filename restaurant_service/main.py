@@ -6,7 +6,7 @@ from passwordhelper import PasswordHelper
 import config
 from bitlyhelper import BitlyHelper
 import datetime
-from forms import RegistrationForm, LoginForm
+from forms import CreateTableForm, RegistrationForm, LoginForm
 from flask_wtf.csrf import CSRFProtect
 
 db = DBhelper()
@@ -90,16 +90,18 @@ def dashboard_resolve():
 @login_required
 def account():
     tables = db.get_tables(current_user.get_id())
-    return render_template("account.html", tables=tables)
+    return render_template("account.html", tables=tables, createtable=CreateTableForm())
 
 @app.route("/account/createtable", methods=["POST"])
 @login_required
 def account_createtable():
-    tablename = request.form.get("tablenumber")
-    tableid = db.add_table(tablename, current_user.get_id())
-    new_url = BH.shorten_url(config.base_url + "newrequest/" + tableid)
-    db.update_table(tableid, new_url)
-    return redirect(url_for('account'))
+    form = CreateTableForm()
+    if form.validate_on_submit():
+        tableid = db.add_table(form.tablenumber.data, current_user.get_id())
+        new_url = BH.shorten_url(config.base_url + "newrequest/" + tableid)
+        db.update_table(tableid, new_url)
+        return redirect(url_for('account'))
+    return render_template('account.html', createtable=form, tables=db.get_tables(current_user.get_id()))
 
 @app.route("/account/deletetable")
 @login_required

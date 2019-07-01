@@ -36,8 +36,20 @@
 
           <h2>Add new table</h2>
           <form class="form-inline" action="/account/createtable" method="POST">
-            <input type="text" name="tablenumber" placeholder="Table number or name" class="form-control">
-            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Create</button>
+            <div class="form-group">
+              {% if createtable.tablenumber.errors %}
+                <ul class="errors">
+                  {% for error in createtable.tablenumber.errors %}
+                    <li>{{error}}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+              {{ createtable.csrf_token }}
+              {{ createtable.tablenumber(class="form-control", placeholder="Table number or name")}}
+              {{ createtable.submit(value="Create", class="btn btn-outline-success my-2 my-sm-0") }}
+            <!-- <input type="text" name="tablenumber" placeholder="Table number or name" class="form-control">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Create</button> -->
+            </div>
           </form>
         </div>
       </div>

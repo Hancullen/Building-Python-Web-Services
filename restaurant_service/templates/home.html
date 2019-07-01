@@ -51,7 +51,6 @@
 
         </ul>
         <form class="form-inline my-2 my-lg-0" action="/login" method="POST">
-          {{ loginform.csrf_token }}
           {% if loginform.errors %}
             <ul class="errors">
               {% for field_name, field_errors in loginform.errors|dictsort if field_errors %}
@@ -61,19 +60,19 @@
               {% endfor %}
             </ul>
           {% endif %}
-
-          <!-- <input class="form-control mr-sm-2" name='email'>
-            {{ loginform.loginemail(placeholder="Email")}}
+          {{ loginform.csrf_token }}
+          <div class="form-group" name='email'>
+            {{ loginform.loginemail(class="form-control mr-sm-2", placeholder="Email")}}
           </div>
-          <div class="form-control mr-sm-2">
-            {{ loginform.loginpassword(placeholder="Password")}}
+          <div class="form-group" name='password'>
+            {{ loginform.loginpassword(class="form-control mr-sm-2", placeholder="Password")}}
           </div>
-          <button class="btn btn-outline-success my-2 my-sm-0">
-            {{ loginform.submit(value="Sign in") }}
-          </button> -->
-          <input class="form-control mr-sm-2" name="email" placeholder="Email" {{loginform.loginemail}}>
+          <div class="form-group">
+            {{ loginform.submit(class="btn btn-outline-success my-2 my-sm-0", value="Sign in") }}
+          </div>
+          <!-- <input class="form-control mr-sm-2" name="email" placeholder="Email" {{loginform.loginemail}}>
           <input class="form-control mr-sm-2" name="password" placeholder="Password" {{loginform.loginpassword}}>
-          <button class="btn btn-outline-success my-2 my-sm-0" {{loginform.submit}}> Sign In </button>
+          <button class="btn btn-outline-success my-2 my-sm-0" {{loginform.submit}}> Sign In </button> -->
         </form>
       </div>
     </nav>
