@@ -42,7 +42,7 @@ class MockDBhelper:
                 req['table_number'] = table['number']
                 req['time'] = time
                 break
-        MOCK_REQUESTS.append(req)
+            MOCK_REQUESTS.append(req)
         return True
 
     def get_requests(self, owner_id):

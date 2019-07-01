@@ -1,6 +1,5 @@
 from flask import Flask, request, render_template, redirect, url_for
 from flask_login import LoginManager, current_user, login_required, login_user, logout_user
-from mockdbhelper import MockDBhelper as DBhelper
 from user import User
 from passwordhelper import PasswordHelper
 import config
@@ -8,8 +7,11 @@ from bitlyhelper import BitlyHelper
 import datetime
 from forms import CreateTableForm, RegistrationForm, LoginForm
 from flask_wtf.csrf import CSRFProtect
-
-db = DBhelper()
+if config.test:
+    from mockdbhelper import MockDBhelper as DBHelper
+else:
+    from dbhelper import DBHelper
+db = DBHelper()
 PH = PasswordHelper()
 BH = BitlyHelper()
 
@@ -76,9 +78,9 @@ def dashboard():
 
 @app.route("/newrequest/<tid>")
 def new_request(tid):
-    db.add_request(tid, datetime.datetime.now())
-    return "Your request has been received and a waiter will be with you shorly"
-
+    if db.add_request(tid, datetime.datetime.now()):
+        return "Your request has been received and a waiter will be with you shorly"
+    return "There is already a request pending on this table. Please be patient, our staff will be with there ASAP."
 @app.route("/dashboard/resolve")
 @login_required
 def dashboard_resolve():
@@ -98,7 +100,7 @@ def account_createtable():
     form = CreateTableForm()
     if form.validate_on_submit():
         tableid = db.add_table(form.tablenumber.data, current_user.get_id())
-        new_url = BH.shorten_url(config.base_url + "newrequest/" + tableid)
+        new_url = BH.shorten_url(config.base_url + "newrequest/" + str(tableid))
         db.update_table(tableid, new_url)
         return redirect(url_for('account'))
     return render_template('account.html', createtable=form, tables=db.get_tables(current_user.get_id()))
